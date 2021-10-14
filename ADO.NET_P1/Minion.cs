@@ -12,6 +12,13 @@ namespace ADO.NET_P1
             MinionVillains = new HashSet<MinionVillain>();
         }
 
+        public Minion(string name, int age, int town)
+        {
+            Name = name;
+            Age = age;
+            TownId = town;
+        }
+
         public int Id { get; set; }
         public string Name { get; set; }
         public int Age { get; set; }

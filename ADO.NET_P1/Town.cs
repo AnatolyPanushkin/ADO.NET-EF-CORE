@@ -12,6 +12,12 @@ namespace ADO.NET_P1
             Minions = new HashSet<Minion>();
         }
 
+        public Town(string town)
+        {
+            Name=town;
+            CountryCode = null;
+        }
+
         public int Id { get; set; }
         public string Name { get; set; }
         public int? CountryCode { get; set; }

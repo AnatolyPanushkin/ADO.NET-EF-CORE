@@ -12,6 +12,12 @@ namespace ADO.NET_P1
             MinionVillains = new HashSet<MinionVillain>();
         }
 
+        public Villain(string villainName)
+        {
+           Name=villainName;
+           EvilnessFactorId = 4;
+        }
+
         public int Id { get; set; }
         public string Name { get; set; }
         public int? EvilnessFactorId { get; set; }
