@@ -14,21 +14,57 @@ namespace ADO.NET_P1
         static void Main(string[] args)
         {
             //SelectVillainsId(3);
+            
             for (int i = 0; i < 40; i++)
             {
                 Console.Write("-");
             }
             Console.WriteLine("");
+            
             //SelectMore3Minions();
-            //SetMinion("d",4,"fsd");
-            //SelectVillainsWhoHaveMoreThan3Minions();
-            //Console.Write("Введите ID злодея:");
+            
             //DeleteVillainById(int.Parse(Console.ReadLine() ?? String.Empty));
-            Console.Write("Введите данные миньона:");
-            string[] str = Console.ReadLine()?.Split(" ");
-            SetMinion(str[0],int.Parse(str[1]),str[2]);
+            
+            // Console.Write("Введите данные миньона:");
+            // string[] str = Console.ReadLine()?.Split(" ");
+            // SetMinion(str[0],int.Parse(str[1]),str[2]);
+            
+            IncreaseMinionsAgeById();
         }
+        
+        /// <summary>
+        /// Функция для увеличения возраста миньонов 
+        /// </summary>
+        static void IncreaseMinionsAgeById()
+        {
+            //Вводим Id минионов, у которых хотим увеличить возраст
+            int[] minionsId = Console.ReadLine()?.Split(" ").Select(int.Parse).ToArray();
 
+            using var context = new ADONET_P1Context();
+            
+            //Ищем миньонов с нужными нам Id
+            if (minionsId != null)
+                for (int i = 0; i < minionsId.Length; i++)
+                {
+                    var minion = (from m in context.Minions where m.Id == minionsId[i] select m).SingleOrDefault();
+                    if (minion != null) minion.Age++;
+                }
+
+            context.SaveChanges();
+            
+            //Выводим всех миньонов
+            var minion2 = from m  in context.Minions select m;
+            foreach (var v in  minion2)
+            {
+                Console.WriteLine($"{v.Name} {v.Age}");
+            }
+        }
+        
+        
+        /// <summary>
+        /// Функция поиска злодея по Id
+        /// </summary>
+        /// <param name="id">Id злодея</param>
         static void DeleteVillainById(int id)
         {
             using var context =new ADONET_P1Context();
@@ -50,16 +86,21 @@ namespace ADO.NET_P1
             Console.WriteLine($"{villain.Name} был удален.");
             Console.WriteLine($"{quantity} миньонов освобождено.");
         }
-
+        /// <summary>
+        /// Функция добавления миньона
+        /// </summary>
+        /// <param name="name">Имя миньона</param>
+        /// <param name="age">Возраст миньона</param>
+        /// <param name="town">Название города миньона </param>
         static void SetMinion(string name, int age,string town)
-        {  
-           
+        {
             var context = new ADONET_P1Context();
             using (context)
             {
                 Console.Write("Villain: ");
                 string villainName=Console.ReadLine();
-                
+
+                int townId = 0;
                 var towns = (from t in context.Towns where t.Name.Equals(town) select t).SingleOrDefault();
                 if (towns == null)
                 {
@@ -67,12 +108,11 @@ namespace ADO.NET_P1
                     context.Towns.Add(newTown);
                     context.SaveChanges();
                     Console.WriteLine($"Город {newTown.Name} был добавлен в базу данных.");
-                  
+                    townId = newTown.Id;
                 }
 
-                var town2 = context.Towns.Where(e => e.Name.Equals(town)).Select(e => e).ToArray();
-                
-
+                string vlnName="";
+                int vlnId = 0;
                 var villain = context.Villains.Where(e => e.Name.Equals(villainName)).Select(e => e).SingleOrDefault();
                 if (villain==null)
                 {
@@ -80,29 +120,27 @@ namespace ADO.NET_P1
                     context.Villains.Add(newVillain);
                     context.SaveChanges();
                     Console.WriteLine($"Злодей {newVillain.Name}был добавлен в базу даных");
-                    
+                    vlnName = newVillain.Name;
+                    vlnId = newVillain.Id;
                 }
                 
-                var villain2 = context.Villains.Where(e => e.Name.Equals(villainName)).Select(e => e).ToArray();
-
-               
-                
-                    var newMinion = new Minion(name, age, town2[0].Id);
-                    context.Minions.Add(newMinion);
-                    context.SaveChanges();
-                
-                    Console.WriteLine($"Успешно добавлен {newMinion.Name}, чтобы быть миньоном {villain2[0].Name}");
-
-                    var newMinionVillain = new MinionVillain(newMinion.Id,villain2[0].Id);
-                    context.MinionVillains.Add(newMinionVillain);
-                
-
+                var newMinion = new Minion(name, age, townId);
+                context.Minions.Add(newMinion);
                 context.SaveChanges();
                 
+                Console.WriteLine($"Успешно добавлен {newMinion.Name}, чтобы быть миньоном {vlnName}");
 
+                var newMinionVillain = new MinionVillain(newMinion.Id,vlnId);
+                context.MinionVillains.Add(newMinionVillain);
+
+                context.SaveChanges();
             }
         }
-
+        
+        /// <summary>
+        ///Функция поиска злодея и его миньонов по Id злодея 
+        /// </summary>
+        /// <param name="id">Id злодея</param>
         static void SelectVillainsId(int id)
         {
             var context = new ADONET_P1Context();
@@ -133,16 +171,13 @@ namespace ADO.NET_P1
                 {
                     Console.WriteLine($"No villain with ID {id} exist in the database ");
                 }
-
-
-
-
             }
-
         }
 
     
-        
+        /// <summary>
+        /// Функция поиска злодеев, имеющих более 3-х миньонов, с помощью LINQ запроса в стиле SQL
+        /// </summary>
         static void SelectMore3Minions()
         {
             var context = new ADONET_P1Context();
@@ -160,12 +195,10 @@ namespace ADO.NET_P1
                 }
             }
         }
-
-        static void SelectVillainAndHisMinions(int id)
-        {
-
-        }
-        static void SelectVillainsWhoHaveMoreThan3Minions()
+        /// <summary>
+        /// Функция поиска злодеев, имеющих более 3-х миньонов, с помощью SQL запроса
+        /// </summary>
+        static void SelectVillainsWith3MinionsSQL()
         {
             SqlConnection sqlConnection = new SqlConnection(connectionString);
             sqlConnection.Open();
